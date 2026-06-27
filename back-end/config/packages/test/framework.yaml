@@ -1,0 +1,4 @@
+framework:
+    exceptions:
+        Symfony\Component\HttpKernel\Exception\UnprocessableEntityHttpException:
+            log_level: debug
