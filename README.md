@@ -57,8 +57,9 @@ docker compose up -d
 
 - Frontend : `http://localhost:5173`
 - API : `http://localhost:8000/api`
+- Adminer : `http://localhost:8081`
 
-## Qualité
+## Vérifications
 
 ### Frontend
 
@@ -74,4 +75,5 @@ npm run build
 cd back-end
 composer cs:check
 composer analyse
+php bin/phpunit
 ```
