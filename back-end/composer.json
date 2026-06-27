@@ -1,4 +1,6 @@
 {
+    "name": "fmikl/datashare-back-end",
+    "description": "DataShare Symfony API.",
     "type": "project",
     "license": "proprietary",
     "minimum-stability": "stable",
@@ -64,6 +66,9 @@
             "cache:clear": "symfony-cmd",
             "assets:install %PUBLIC_DIR%": "symfony-cmd"
         },
+        "analyse": "phpstan analyse",
+        "cs:check": "php-cs-fixer fix --dry-run --diff",
+        "cs:fix": "php-cs-fixer fix",
         "post-install-cmd": [
             "@auto-scripts"
         ],
@@ -79,5 +84,11 @@
             "allow-contrib": false,
             "require": "7.4.*"
         }
+    },
+    "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.95",
+        "phpstan/phpstan": "^2.2",
+        "phpstan/phpstan-doctrine": "^2.0",
+        "phpstan/phpstan-symfony": "^2.0"
     }
 }
