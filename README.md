@@ -55,6 +55,7 @@ docker compose up -d
 
 ## URLs locales
 
+- Service : `http://localhost:8000`
 - Frontend : `http://localhost:5173`
 - API : `http://localhost:8000/api`
 - Adminer : `http://localhost:8081`
