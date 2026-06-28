@@ -13,12 +13,14 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 final class SecurityControllerTest extends WebTestCase
 {
+    private const LOGIN_URI = '/api/auth/login';
     private const REGISTER_URI = '/api/auth/register';
 
     private const USER_EMAIL = 'user@example.com';
     private const USER_PASSWORD = 'password123';
 
     private const DUPLICATE_EMAIL_MESSAGE = 'Cette adresse email est déjà utilisée.';
+    private const INVALID_CREDENTIALS_MESSAGE = 'Identifiants invalides.';
     private const PASSWORD_MISMATCH_MESSAGE = 'Les mots de passe ne correspondent pas.';
 
     private KernelBrowser $client;
@@ -89,6 +91,59 @@ final class SecurityControllerTest extends WebTestCase
         self::assertStringContainsString(self::PASSWORD_MISMATCH_MESSAGE, $this->client->getResponse()->getContent());
     }
 
+    public function testLoginReturnsToken(): void
+    {
+        $this->createUser();
+
+        $this->jsonRequest(self::LOGIN_URI, $this->validLoginPayload());
+
+        self::assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $response = $this->jsonResponse();
+
+        self::assertArrayHasKey('token', $response);
+        self::assertIsString($response['token']);
+        self::assertNotSame('', $response['token']);
+    }
+
+    public function testLoginRejectsUnknownEmail(): void
+    {
+        $this->jsonRequest(self::LOGIN_URI, $this->validLoginPayload());
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+        self::assertSame(['message' => self::INVALID_CREDENTIALS_MESSAGE], $this->jsonResponse());
+    }
+
+    public function testLoginRejectsInvalidPassword(): void
+    {
+        $this->createUser();
+        $this->jsonRequest(self::LOGIN_URI, [
+            'email' => self::USER_EMAIL,
+            'password' => 'invalid-password',
+        ]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+        self::assertSame(['message' => self::INVALID_CREDENTIALS_MESSAGE], $this->jsonResponse());
+    }
+
+    public function testLoginRejectsEmptyPayload(): void
+    {
+        $this->jsonRequest(self::LOGIN_URI, []);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function validLoginPayload(): array
+    {
+        return [
+            'email' => self::USER_EMAIL,
+            'password' => self::USER_PASSWORD,
+        ];
+    }
+
     /**
      * @return array<string, string>
      */
@@ -115,6 +170,15 @@ final class SecurityControllerTest extends WebTestCase
             ],
             content: json_encode($payload, JSON_THROW_ON_ERROR),
         );
+    }
+
+    private function createUser(): void
+    {
+        $user = (new User())->setEmail(self::USER_EMAIL);
+        $user->setPassword($this->passwordHasher()->hashPassword($user, self::USER_PASSWORD));
+
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
     }
 
     /**
