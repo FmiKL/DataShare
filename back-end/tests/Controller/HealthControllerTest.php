@@ -12,9 +12,13 @@ final class HealthControllerTest extends WebTestCase
         $client = static::createClient();
 
         $client->request('GET', '/', server: ['HTTP_ACCEPT' => 'application/json']);
+        $content = $client->getResponse()->getContent();
 
         self::assertResponseStatusCodeSame(Response::HTTP_OK);
-        self::assertJson($client->getResponse()->getContent());
-        self::assertSame(['status' => 'ok'], json_decode($client->getResponse()->getContent(), true, flags: JSON_THROW_ON_ERROR));
+        self::assertJson($content);
+        self::assertSame(
+            ['status' => 'ok'],
+            json_decode($content, true, flags: JSON_THROW_ON_ERROR)
+        );
     }
 }

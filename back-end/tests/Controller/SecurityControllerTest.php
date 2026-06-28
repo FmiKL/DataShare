@@ -37,7 +37,7 @@ final class SecurityControllerTest extends WebTestCase
         $schemaTool->createSchema($metadata);
     }
 
-    public function testRegisterCreateUser(): void
+    public function testRegisterCreatesUser(): void
     {
         $this->jsonRequest(self::REGISTER_URI, $this->validRegisterPayload());
 
@@ -55,7 +55,7 @@ final class SecurityControllerTest extends WebTestCase
         self::assertTrue($this->passwordHasher()->isPasswordValid($user, self::USER_PASSWORD));
     }
 
-    public function testRegisterRejectExistingEmail(): void
+    public function testRegisterRejectsExistingEmail(): void
     {
         $payload = $this->validRegisterPayload();
 
@@ -70,14 +70,14 @@ final class SecurityControllerTest extends WebTestCase
         ], $this->jsonResponse());
     }
 
-    public function testRegisterRejectEmptyPayload(): void
+    public function testRegisterRejectsEmptyPayload(): void
     {
         $this->jsonRequest(self::REGISTER_URI, []);
 
         self::assertResponseStatusCodeSame(Response::HTTP_UNPROCESSABLE_ENTITY);
     }
 
-    public function testRegisterRejectDifferentPassword(): void
+    public function testRegisterRejectsDifferentPassword(): void
     {
         $this->jsonRequest(self::REGISTER_URI, [
             'email' => self::USER_EMAIL,
