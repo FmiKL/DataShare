@@ -2,5 +2,6 @@
   "editor.formatOnSave": true,
   "[php]": {
     "editor.formatOnSave": false
-  }
+  },
+  "postman.settings.dotenv-detection-notification-visibility": false
 }
