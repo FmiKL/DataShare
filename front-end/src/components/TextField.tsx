@@ -1,27 +1,27 @@
-type TextFieldProps = {
-  autoComplete: string
+import type { InputHTMLAttributes } from 'react'
+
+type TextFieldProps = Omit<
+  InputHTMLAttributes<HTMLInputElement>,
+  'className'
+> & {
   label: string
   name: string
-  placeholder: string
-  type?: 'email' | 'password' | 'text'
 }
 
 export function TextField({
-  autoComplete,
   label,
   name,
-  placeholder,
   type = 'text',
+  ...props
 }: TextFieldProps) {
   return (
     <label className="form-field">
       <span className="form-field__label">{label}</span>
       <input
-        autoComplete={autoComplete}
         className="form-field__control"
         name={name}
-        placeholder={placeholder}
         type={type}
+        {...props}
       />
     </label>
   )
