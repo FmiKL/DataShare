@@ -68,6 +68,7 @@ docker compose up -d
 cd front-end
 npm run lint
 npm run build
+npm run test
 ```
 
 ### Backend
