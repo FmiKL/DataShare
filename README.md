@@ -4,10 +4,11 @@ Application web (MVP) pour transférer et partager des fichiers.
 
 ## Stack
 
-- React avec Vite
-- Symfony avec API Platform
-- PostgreSQL
-- Docker Compose
+- Frontend : React, Vite, TypeScript
+- Backend : Symfony, API Platform
+- Base de données : PostgreSQL
+- Tests : PHPUnit, Vitest, Playwright
+- Conteneurisation : Docker Compose
 
 ## Structure
 
@@ -21,6 +22,7 @@ Application web (MVP) pour transférer et partager des fichiers.
 ```bash
 cd front-end
 npm install
+npx playwright install chromium
 ```
 
 ### Backend
@@ -69,6 +71,7 @@ cd front-end
 npm run lint
 npm run build
 npm run test
+npm run test:e2e
 ```
 
 ### Backend
