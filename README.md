@@ -30,6 +30,7 @@ npx playwright install chromium
 ```bash
 cd back-end
 composer install
+php bin/console lexik:jwt:generate-keypair --skip-if-exists
 ```
 
 ## Lancement
@@ -53,6 +54,7 @@ symfony server:start
 ```bash
 cd back-end
 docker compose up -d
+php bin/console doctrine:migrations:migrate
 ```
 
 ## URLs locales
