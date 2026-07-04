@@ -65,6 +65,17 @@ abstract class ApiWebTestCase extends WebTestCase
     }
 
     /**
+     * @return array<string, string>
+     */
+    protected function authorizationHeader(User $user): array
+    {
+        return [
+            'HTTP_ACCEPT' => 'application/json',
+            'HTTP_AUTHORIZATION' => sprintf('Bearer %s', $this->createToken($user)),
+        ];
+    }
+
+    /**
      * @return array<string, mixed>
      */
     protected function jsonResponse(): array

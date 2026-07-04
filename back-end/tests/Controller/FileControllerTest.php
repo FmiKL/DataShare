@@ -3,6 +3,7 @@
 namespace App\Tests\Controller;
 
 use App\Entity\SharedFile;
+use App\Entity\User;
 use App\Repository\SharedFileRepository;
 use App\Tests\ApiWebTestCase;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -10,7 +11,7 @@ use Symfony\Component\HttpFoundation\Response;
 
 final class FileControllerTest extends ApiWebTestCase
 {
-    private const UPLOAD_URI = '/api/files';
+    private const FILES_URI = '/api/files';
 
     private const FILE_CONTENT = 'hello!!';
 
@@ -55,9 +56,37 @@ final class FileControllerTest extends ApiWebTestCase
         self::assertFileExists($this->sharedFilePath($sharedFile->getStoragePath()));
     }
 
+    public function testListsUserFiles(): void
+    {
+        $user = $this->createUser();
+        $otherUser = $this->createUser('autre@user.com');
+
+        $this->createSharedFile($user, 'ancien-document.txt', new \DateTimeImmutable('-1 day'));
+        $this->createSharedFile($user, 'dernier-document.txt', new \DateTimeImmutable());
+        $this->createSharedFile($otherUser, 'autre-user.txt', new \DateTimeImmutable());
+
+        $this->client->request('GET', self::FILES_URI, server: $this->authorizationHeader($user));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $response = $this->jsonResponse();
+
+        self::assertSame(
+            ['dernier-document.txt', 'ancien-document.txt'],
+            array_column($response, 'originalName')
+        );
+    }
+
     public function testRequiresUploadAuthentication(): void
     {
-        $this->client->request('POST', self::UPLOAD_URI, files: ['file' => $this->createUploadedFile()]);
+        $this->client->request('POST', self::FILES_URI, files: ['file' => $this->createUploadedFile()]);
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+    }
+
+    public function testRequiresListAuthentication(): void
+    {
+        $this->client->request('GET', self::FILES_URI, server: ['HTTP_ACCEPT' => 'application/json']);
 
         self::assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
     }
@@ -68,11 +97,8 @@ final class FileControllerTest extends ApiWebTestCase
 
         $this->client->request(
             'POST',
-            self::UPLOAD_URI,
-            server: [
-                'HTTP_ACCEPT' => 'application/json',
-                'HTTP_AUTHORIZATION' => sprintf('Bearer %s', $this->createToken($user)),
-            ],
+            self::FILES_URI,
+            server: $this->authorizationHeader($user)
         );
 
         self::assertResponseStatusCodeSame(Response::HTTP_BAD_REQUEST);
@@ -94,12 +120,9 @@ final class FileControllerTest extends ApiWebTestCase
 
         $this->client->request(
             'POST',
-            self::UPLOAD_URI,
+            self::FILES_URI,
             files: ['file' => $uploadedFile],
-            server: [
-                'HTTP_ACCEPT' => 'application/json',
-                'HTTP_AUTHORIZATION' => sprintf('Bearer %s', $this->createToken($user)),
-            ],
+            server: $this->authorizationHeader($user)
         );
     }
 
@@ -112,6 +135,24 @@ final class FileControllerTest extends ApiWebTestCase
         file_put_contents($filePath, self::FILE_CONTENT);
 
         return new UploadedFile($filePath, $originalName, 'text/plain', test: true);
+    }
+
+    private function createSharedFile(User $owner, string $originalName, \DateTimeImmutable $createdAt): SharedFile
+    {
+        $sharedFile = (new SharedFile())
+            ->setOwner($owner)
+            ->setOriginalName($originalName)
+            ->setMimeType('text/plain')
+            ->setSize(strlen(self::FILE_CONTENT))
+            ->setStoragePath(sprintf('%s.txt', bin2hex(random_bytes(8))))
+            ->setCreatedAt($createdAt)
+            ->setExpiresAt($createdAt->modify('+7 days'))
+        ;
+
+        $this->entityManager->persist($sharedFile);
+        $this->entityManager->flush();
+
+        return $sharedFile;
     }
 
     private function sharedFilePath(string $storagePath): string

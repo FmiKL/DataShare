@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\SharedFile;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -14,6 +15,18 @@ class SharedFileRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, SharedFile::class);
+    }
+
+    /** @return SharedFile[] */
+    public function findByOwnerOrderedByCreationDate(User $userOwner): array
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.owner = :owner')
+            ->setParameter('owner', $userOwner)
+            ->orderBy('s.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult()
+        ;
     }
 
     //    /**
