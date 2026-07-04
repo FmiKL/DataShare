@@ -8,7 +8,6 @@ use App\Exception\File\FileTooLargeException;
 use App\Exception\File\FileUploadException;
 use App\Exception\File\ForbiddenFileTypeException;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 
@@ -21,10 +20,7 @@ final readonly class FileUploadService
 
     public function __construct(
         private EntityManagerInterface $entityManager,
-        #[Autowire(param: 'app.share_dir')]
-        private string $shareDirectory,
-        #[Autowire(param: 'kernel.project_dir')]
-        private string $projectDirectory,
+        private LocalFileStorage $localFileStorage,
     ) {
     }
 
@@ -51,10 +47,9 @@ final readonly class FileUploadService
         }
 
         $storageName = $this->generateStorageName($extension);
-        $shareDirectory = $this->getShareDirectory();
 
         try {
-            $uploadedFile->move($shareDirectory, $storageName);
+            $uploadedFile->move($this->localFileStorage->directory(), $storageName);
         } catch (FileException) {
             throw new FileUploadException("Le fichier n'a pas pu être enregistré.");
         }
@@ -94,14 +89,5 @@ final readonly class FileUploadService
         }
 
         return $storageName;
-    }
-
-    private function getShareDirectory(): string
-    {
-        if (str_starts_with($this->shareDirectory, '/')) {
-            return $this->shareDirectory;
-        }
-
-        return sprintf('%s/%s', $this->projectDirectory, $this->shareDirectory);
     }
 }

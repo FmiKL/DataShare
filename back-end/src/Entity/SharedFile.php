@@ -138,6 +138,11 @@ class SharedFile
         return $this->expiresAt;
     }
 
+    public function isExpired(): bool
+    {
+        return $this->expiresAt < new \DateTimeImmutable();
+    }
+
     public function setExpiresAt(\DateTimeImmutable $expiresAt): static
     {
         $this->expiresAt = $expiresAt;

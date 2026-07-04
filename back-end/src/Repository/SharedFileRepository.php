@@ -29,6 +29,11 @@ class SharedFileRepository extends ServiceEntityRepository
         ;
     }
 
+    public function findOneByDownloadToken(string $downloadToken): ?SharedFile
+    {
+        return $this->findOneBy(['downloadToken' => $downloadToken]);
+    }
+
     //    /**
     //     * @return SharedFile[] Returns an array of SharedFile objects
     //     */

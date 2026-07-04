@@ -6,6 +6,7 @@ use App\Entity\SharedFile;
 use App\Entity\User;
 use App\Repository\SharedFileRepository;
 use App\Tests\ApiWebTestCase;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -77,6 +78,32 @@ final class FileControllerTest extends ApiWebTestCase
         );
     }
 
+    public function testDownloadsSharedFile(): void
+    {
+        $sharedFile = $this->createSharedFile(
+            $this->createUser(),
+            'document.txt',
+            new \DateTimeImmutable()
+        );
+
+        $downloadToken = $sharedFile->getDownloadToken();
+
+        self::assertIsString($downloadToken);
+
+        $this->client->request('GET', $this->downloadUri($downloadToken));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $response = $this->client->getResponse();
+
+        self::assertInstanceOf(BinaryFileResponse::class, $response);
+        self::assertSame(self::FILE_CONTENT, $this->binaryFileContent($response));
+        self::assertStringContainsString(
+            'document.txt',
+            $response->headers->get('content-disposition', '')
+        );
+    }
+
     public function testRequiresUploadAuthentication(): void
     {
         $this->client->request('POST', self::FILES_URI, files: ['file' => $this->createUploadedFile()]);
@@ -89,6 +116,33 @@ final class FileControllerTest extends ApiWebTestCase
         $this->client->request('GET', self::FILES_URI, server: ['HTTP_ACCEPT' => 'application/json']);
 
         self::assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+    }
+
+    public function testRejectsDownloadUnknownToken(): void
+    {
+        $this->client->request('GET', $this->downloadUri(str_repeat('a', 64)));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+        self::assertSame(['message' => 'Fichier introuvable.'], $this->jsonResponse());
+    }
+
+    public function testRejectsDownloadExpiredFile(): void
+    {
+        $sharedFile = $this->createSharedFile(
+            $this->createUser(),
+            'document.txt',
+            new \DateTimeImmutable('-10 days'),
+            new \DateTimeImmutable('-1 day')
+        );
+
+        $downloadToken = $sharedFile->getDownloadToken();
+
+        self::assertIsString($downloadToken);
+
+        $this->client->request('GET', $this->downloadUri($downloadToken));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+        self::assertSame(['message' => 'Fichier introuvable.'], $this->jsonResponse());
     }
 
     public function testRejectsUploadMissingFile(): void
@@ -137,22 +191,52 @@ final class FileControllerTest extends ApiWebTestCase
         return new UploadedFile($filePath, $originalName, 'text/plain', test: true);
     }
 
-    private function createSharedFile(User $owner, string $originalName, \DateTimeImmutable $createdAt): SharedFile
-    {
+    private function createSharedFile(
+        User $owner,
+        string $originalName,
+        \DateTimeImmutable $createdAt,
+        ?\DateTimeImmutable $expiresAt = null,
+    ): SharedFile {
+        $storagePath = sprintf('%s.txt', bin2hex(random_bytes(8)));
+        $filePath = $this->sharedFilePath($storagePath);
+        $fileDirectory = dirname($filePath);
+
+        if (!is_dir($fileDirectory)) {
+            mkdir($fileDirectory, 0777, true);
+        }
+
+        file_put_contents($filePath, self::FILE_CONTENT);
+
         $sharedFile = (new SharedFile())
             ->setOwner($owner)
             ->setOriginalName($originalName)
             ->setMimeType('text/plain')
             ->setSize(strlen(self::FILE_CONTENT))
-            ->setStoragePath(sprintf('%s.txt', bin2hex(random_bytes(8))))
+            ->setStoragePath($storagePath)
             ->setCreatedAt($createdAt)
-            ->setExpiresAt($createdAt->modify('+7 days'))
+            ->setExpiresAt($expiresAt ?? $createdAt->modify('+7 days'))
         ;
 
         $this->entityManager->persist($sharedFile);
         $this->entityManager->flush();
 
         return $sharedFile;
+    }
+
+    private function downloadUri(string $downloadToken): string
+    {
+        return sprintf('%s/%s/download', self::FILES_URI, $downloadToken);
+    }
+
+    private function binaryFileContent(BinaryFileResponse $response): string
+    {
+        ob_start();
+        $response->sendContent();
+        $content = ob_get_clean();
+
+        self::assertIsString($content);
+
+        return $content;
     }
 
     private function sharedFilePath(string $storagePath): string

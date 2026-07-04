@@ -9,10 +9,13 @@ use App\Exception\File\FileUploadException;
 use App\Exception\File\ForbiddenFileTypeException;
 use App\Repository\SharedFileRepository;
 use App\Service\File\FileUploadService;
+use App\Service\File\LocalFileStorage;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
@@ -55,6 +58,39 @@ final class FileController extends AbstractController
         }
 
         return $this->json($this->sharedFileResponse($sharedFile), JsonResponse::HTTP_CREATED);
+    }
+
+    #[Route(
+        '/{downloadToken}/download',
+        name: 'download',
+        requirements: ['downloadToken' => '[a-z0-9]{64}'],
+        methods: ['GET']
+    )]
+    public function download(
+        string $downloadToken,
+        SharedFileRepository $sharedFileRepository,
+        LocalFileStorage $localFileStorage,
+    ): BinaryFileResponse|JsonResponse {
+        $sharedFile = $sharedFileRepository->findOneByDownloadToken($downloadToken);
+
+        if (null === $sharedFile || $sharedFile->isExpired()) {
+            return $this->json(['message' => 'Fichier introuvable.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $storagePath = $sharedFile->getStoragePath();
+
+        if (null === $storagePath || !$localFileStorage->exists($storagePath)) {
+            return $this->json(['message' => 'Fichier introuvable.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $response = $this->file(
+            $localFileStorage->path($storagePath),
+            $sharedFile->getOriginalName() ?? 'fichier',
+            ResponseHeaderBag::DISPOSITION_ATTACHMENT);
+
+        $response->headers->set('Content-Type', $sharedFile->getMimeType() ?? 'application/octet-stream');
+
+        return $response;
     }
 
     /**
