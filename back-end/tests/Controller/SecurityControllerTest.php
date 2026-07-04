@@ -3,41 +3,17 @@
 namespace App\Tests\Controller;
 
 use App\Entity\User;
-use App\Repository\UserRepository;
-use Doctrine\ORM\EntityManagerInterface;
-use Doctrine\ORM\Tools\SchemaTool;
-use Symfony\Bundle\FrameworkBundle\KernelBrowser;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use App\Tests\ApiWebTestCase;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
-final class SecurityControllerTest extends WebTestCase
+final class SecurityControllerTest extends ApiWebTestCase
 {
     private const LOGIN_URI = '/api/auth/login';
     private const REGISTER_URI = '/api/auth/register';
 
-    private const USER_EMAIL = 'user@example.com';
-    private const USER_PASSWORD = 'password123';
-
     private const DUPLICATE_EMAIL_MESSAGE = 'Cette adresse email est déjà utilisée.';
     private const INVALID_CREDENTIALS_MESSAGE = 'Identifiants invalides.';
     private const PASSWORD_MISMATCH_MESSAGE = 'Les mots de passe ne correspondent pas.';
-
-    private KernelBrowser $client;
-
-    private EntityManagerInterface $entityManager;
-
-    protected function setUp(): void
-    {
-        $this->client = static::createClient();
-        $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
-
-        $metadata = $this->entityManager->getMetadataFactory()->getAllMetadata();
-        $schemaTool = new SchemaTool($this->entityManager);
-
-        $schemaTool->dropDatabase();
-        $schemaTool->createSchema($metadata);
-    }
 
     public function testRegisterCreatesUser(): void
     {
@@ -154,55 +130,5 @@ final class SecurityControllerTest extends WebTestCase
             'password' => self::USER_PASSWORD,
             'passwordConfirm' => self::USER_PASSWORD,
         ];
-    }
-
-    /**
-     * @param array<string, string> $payload
-     */
-    private function jsonRequest(string $uri, array $payload): void
-    {
-        $this->client->request(
-            'POST',
-            $uri,
-            server: [
-                'CONTENT_TYPE' => 'application/json',
-                'HTTP_ACCEPT' => 'application/json',
-            ],
-            content: json_encode($payload, JSON_THROW_ON_ERROR),
-        );
-    }
-
-    private function createUser(): void
-    {
-        $user = (new User())->setEmail(self::USER_EMAIL);
-        $user->setPassword($this->passwordHasher()->hashPassword($user, self::USER_PASSWORD));
-
-        $this->entityManager->persist($user);
-        $this->entityManager->flush();
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function jsonResponse(): array
-    {
-        $content = $this->client->getResponse()->getContent();
-
-        self::assertJson($content);
-
-        $data = json_decode($content, true, flags: JSON_THROW_ON_ERROR);
-        self::assertIsArray($data);
-
-        return $data;
-    }
-
-    private function userRepository(): UserRepository
-    {
-        return static::getContainer()->get(UserRepository::class);
-    }
-
-    private function passwordHasher(): UserPasswordHasherInterface
-    {
-        return static::getContainer()->get(UserPasswordHasherInterface::class);
     }
 }

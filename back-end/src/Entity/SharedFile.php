@@ -36,7 +36,13 @@ class SharedFile
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $expiresAt = null;
+    private \DateTimeImmutable $expiresAt;
+
+    public function __construct()
+    {
+        $this->downloadToken = bin2hex(random_bytes(32));
+        $this->createdAt = new \DateTimeImmutable();
+    }
 
     public function getId(): ?int
     {
@@ -127,7 +133,7 @@ class SharedFile
         return $this;
     }
 
-    public function getExpiresAt(): ?\DateTimeImmutable
+    public function getExpiresAt(): \DateTimeImmutable
     {
         return $this->expiresAt;
     }
