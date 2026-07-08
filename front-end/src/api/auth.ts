@@ -1,4 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:8000/api'
+import { apiUrl, getApiErrorMessage, readJsonResponse } from './client'
 
 type LoginPayload = {
   email: string
@@ -34,7 +34,7 @@ async function postJson<T>(
   path: string,
   payload: ApiRequestPayload,
 ): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
+  const response = await fetch(apiUrl(path), {
     method: 'POST',
     headers: {
       Accept: 'application/json',
@@ -50,33 +50,4 @@ async function postJson<T>(
   }
 
   return data as T
-}
-
-async function readJsonResponse(response: Response): Promise<unknown> {
-  const content = await response.text()
-  if (content === '') {
-    return null
-  }
-
-  return JSON.parse(content) as unknown
-}
-
-function getApiErrorMessage(data: unknown): string {
-  if (!isRecord(data)) {
-    return 'Une erreur est survenue.'
-  }
-
-  if (typeof data.message === 'string') {
-    return data.message
-  }
-
-  if (typeof data.detail === 'string') {
-    return data.detail
-  }
-
-  return 'Une erreur est survenue.'
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null
 }

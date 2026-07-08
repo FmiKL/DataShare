@@ -1,29 +1,13 @@
-import { cleanup, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import App from '../../App'
 import { useAuthStore } from '../../stores/authStore'
+import { mockJsonResponse, renderApp } from '../../test/helpers'
 
 const USER_EMAIL = 'john.doe@example.com'
 const USER_PASSWORD = 'password'
 const INVALID_PASSWORD = 'wrong-password'
 const AUTH_TOKEN = 'jwt-token'
-
-function renderApp(path = '/connexion') {
-  return render(
-    <MemoryRouter initialEntries={[path]}>
-      <App />
-    </MemoryRouter>,
-  )
-}
-
-function mockJsonResponse(body: unknown, status = 200) {
-  return new Response(JSON.stringify(body), {
-    headers: { 'Content-Type': 'application/json' },
-    status,
-  })
-}
 
 describe('Authentication', () => {
   beforeEach(() => {
@@ -93,10 +77,25 @@ describe('Authentication', () => {
     await user.click(screen.getByRole('button', { name: 'Connexion' }))
 
     expect(
-      await screen.findByRole('heading', { name: 'Mes fichiers' }),
+      await screen.findByText('Tu veux partager un fichier ?'),
     ).toBeInTheDocument()
 
     expect(localStorage.getItem('datashare.authToken')).toBe(AUTH_TOKEN)
+  })
+
+  it('redirects to login before share file', async () => {
+    const user = userEvent.setup()
+
+    renderApp('/')
+
+    await user.click(screen.getByLabelText('Sélectionner un fichier'))
+
+    expect(
+      await screen.findByRole('heading', { name: 'Connexion' }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Connectez-vous pour partager un fichier.'),
+    ).toBeInTheDocument()
   })
 
   it('displays login errors returned by the API', async () => {

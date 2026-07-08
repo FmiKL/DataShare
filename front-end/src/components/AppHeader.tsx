@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import { Link } from 'react-router-dom'
 
 type AppHeaderProps = {
   action: ReactNode
@@ -7,7 +8,9 @@ type AppHeaderProps = {
 export function AppHeader({ action }: AppHeaderProps) {
   return (
     <header className="app-header">
-      <span className="app-header__brand">DataShare</span>
+      <Link className="app-header__brand" to="/">
+        DataShare
+      </Link>
       {action}
     </header>
   )

@@ -32,7 +32,7 @@ export function LoginPage() {
     try {
       const response = await loginUser({ email, password })
       setToken(response.token)
-      navigate('/mes-fichiers')
+      navigate('/')
     } catch (caughtError) {
       setError(getErrorMessage(caughtError))
     } finally {
@@ -41,7 +41,7 @@ export function LoginPage() {
   }
 
   return (
-    <AuthLayout actionLabel="Se connecter" actionTo="/connexion">
+    <AuthLayout actionLabel="Créer un compte" actionTo="/creer-un-compte">
       <Panel title="Connexion">
         <form className="auth-form" onSubmit={handleSubmit}>
           {message && <p className="auth-form__success">{message}</p>}

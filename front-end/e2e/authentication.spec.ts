@@ -18,8 +18,6 @@ test('registers and logs in a user', async ({ page }) => {
   await page.getByLabel('Mot de passe').fill(USER_PASSWORD)
   await page.getByRole('button', { name: 'Connexion' }).click()
 
-  await expect(page).toHaveURL('/mes-fichiers')
-  await expect(
-    page.getByRole('heading', { name: 'Mes fichiers' }),
-  ).toBeVisible()
+  await expect(page).toHaveURL('/')
+  await expect(page.getByText('Tu veux partager un fichier ?')).toBeVisible()
 })

@@ -1,17 +1,14 @@
 import type { ButtonHTMLAttributes } from 'react'
 
-type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: 'header' | 'primary'
-}
+type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement>
 
 export function Button({
   children,
   className = '',
   type = 'button',
-  variant = 'primary',
   ...props
 }: ButtonProps) {
-  const btnClassName = ['button', `button--${variant}`, className]
+  const btnClassName = ['button', 'button--primary', className]
     .filter(Boolean)
     .join(' ')
 
