@@ -9,9 +9,15 @@ import { Button } from './Button'
 
 type AccountFileItemProps = {
   file: SharedFile
+  isDeleting?: boolean
+  onDelete: (file: SharedFile) => void
 }
 
-export function AccountFileItem({ file }: AccountFileItemProps) {
+export function AccountFileItem({
+  file,
+  isDeleting = false,
+  onDelete,
+}: AccountFileItemProps) {
   const [copyStatus, setCopyStatus] = useState('')
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
@@ -23,6 +29,11 @@ export function AccountFileItem({ file }: AccountFileItemProps) {
     await navigator.clipboard.writeText(publicDownloadUrl)
     setCopyStatus('Lien copié')
     setIsMenuOpen(false)
+  }
+
+  function deleteFile() {
+    setIsMenuOpen(false)
+    onDelete(file)
   }
 
   return (
@@ -39,34 +50,47 @@ export function AccountFileItem({ file }: AccountFileItemProps) {
       <div className="account-file__actions">
         {expired ? (
           <span className="account-file__expired">Lien expiré</span>
-        ) : (
-          <>
-            <Button className="button--compact" onClick={copyLink}>
-              <img alt="" className="button__icon" src={copyIcon} />
-              Copier
-            </Button>
-            <a className="account-file__access" href={publicDownloadUrl}>
-              Accéder
-              <img alt="" className="button__icon" src={arrowRightIcon} />
-            </a>
-            <button
-              aria-controls={menuId}
-              aria-expanded={isMenuOpen}
-              aria-label="Options du fichier"
-              className="account-file__menu"
-              type="button"
-              onClick={() => {
-                setIsMenuOpen(!isMenuOpen)
-              }}
-            >
-              <img
-                alt=""
-                className="account-file__menu-icon"
-                src={moreVerticalIcon}
-              />
-            </button>
-            {isMenuOpen && (
-              <div className="account-file__menu-popover" id={menuId}>
+        ) : null}
+        {!expired && (
+          <Button className="button--compact" onClick={copyLink}>
+            <img alt="" className="button__icon" src={copyIcon} />
+            Copier
+          </Button>
+        )}
+        {!expired && (
+          <a className="account-file__access" href={publicDownloadUrl}>
+            Accéder
+            <img alt="" className="button__icon" src={arrowRightIcon} />
+          </a>
+        )}
+        <button
+          className="account-file__delete"
+          disabled={isDeleting}
+          type="button"
+          onClick={deleteFile}
+        >
+          {isDeleting ? 'Suppression...' : 'Supprimer'}
+        </button>
+        <button
+          aria-controls={menuId}
+          aria-expanded={isMenuOpen}
+          aria-label="Options du fichier"
+          className="account-file__menu"
+          type="button"
+          onClick={() => {
+            setIsMenuOpen(!isMenuOpen)
+          }}
+        >
+          <img
+            alt=""
+            className="account-file__menu-icon"
+            src={moreVerticalIcon}
+          />
+        </button>
+        {isMenuOpen && (
+          <div className="account-file__menu-popover" id={menuId}>
+            {!expired && (
+              <>
                 <button
                   className="account-file__menu-item"
                   type="button"
@@ -77,12 +101,20 @@ export function AccountFileItem({ file }: AccountFileItemProps) {
                 <a className="account-file__menu-item" href={publicDownloadUrl}>
                   Accéder
                 </a>
-              </div>
+              </>
             )}
-            {copyStatus && (
-              <span className="account-file__status">{copyStatus}</span>
-            )}
-          </>
+            <button
+              className="account-file__menu-item"
+              disabled={isDeleting}
+              type="button"
+              onClick={deleteFile}
+            >
+              {isDeleting ? 'Suppression...' : 'Supprimer'}
+            </button>
+          </div>
+        )}
+        {copyStatus && (
+          <span className="account-file__status">{copyStatus}</span>
         )}
       </div>
     </article>

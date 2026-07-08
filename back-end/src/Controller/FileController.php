@@ -10,11 +10,13 @@ use App\Exception\File\ForbiddenFileTypeException;
 use App\Repository\SharedFileRepository;
 use App\Service\File\FileUploadService;
 use App\Service\File\LocalFileStorage;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
@@ -58,6 +60,42 @@ final class FileController extends AbstractController
         }
 
         return $this->json($this->sharedFileResponse($sharedFile), JsonResponse::HTTP_CREATED);
+    }
+
+    #[Route(
+        '/{id}',
+        name: 'delete',
+        requirements: ['id' => '\d+'],
+        methods: ['DELETE']
+    )]
+    public function delete(
+        int $id,
+        SharedFileRepository $sharedFileRepository,
+        LocalFileStorage $localFileStorage,
+        EntityManagerInterface $entityManager,
+        #[CurrentUser] User $user,
+    ): JsonResponse|Response {
+        $sharedFile = $sharedFileRepository->find($id);
+
+        if (null === $sharedFile) {
+            return $this->json(['message' => 'Fichier introuvable.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        if ($sharedFile->getOwner()?->getId() !== $user->getId()) {
+            return $this->json(['message' => 'Fichier introuvable.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        $storagePath = $sharedFile->getStoragePath();
+        $filePath = null !== $storagePath ? $localFileStorage->path($storagePath) : null;
+
+        if (null !== $filePath && file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        $entityManager->remove($sharedFile);
+        $entityManager->flush();
+
+        return new Response(status: Response::HTTP_NO_CONTENT);
     }
 
     #[Route(

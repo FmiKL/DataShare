@@ -1,7 +1,11 @@
 import { useEffect, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import { AuthenticationError } from '../api/client'
-import { fetchSharedFiles, type SharedFile } from '../api/files'
+import {
+  deleteSharedFile,
+  fetchSharedFiles,
+  type SharedFile,
+} from '../api/files'
 import logOutIcon from '../assets/icons/log-out.svg'
 import { AccountFileItem } from '../components/AccountFileItem'
 import { AppFooter } from '../components/AppFooter'
@@ -22,6 +26,7 @@ export function UserFilesPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(true)
+  const [deletingFileId, setDeletingFileId] = useState<number | null>(null)
 
   const visibleFiles = files.filter((file) => filterFile(file, fileFilter))
 
@@ -60,9 +65,42 @@ export function UserFilesPage() {
     return <Navigate to="/connexion" replace />
   }
 
+  const authToken = token
+
   function handleLogout() {
     clearToken()
     setIsMenuOpen(false)
+  }
+
+  async function handleDeleteFile(file: SharedFile) {
+    const fileId = Number(file.id)
+
+    const shouldDelete = window.confirm(`Supprimer ${file.originalName} ?`)
+
+    if (!shouldDelete) {
+      return
+    }
+
+    setError('')
+    setDeletingFileId(file.id)
+
+    try {
+      await deleteSharedFile(fileId, authToken)
+      setFiles((currentFiles) =>
+        currentFiles.filter((currentFile) => currentFile.id !== fileId),
+      )
+    } catch (caughtError) {
+      if (caughtError instanceof AuthenticationError) {
+        clearToken()
+        navigate('/connexion', { replace: true })
+
+        return
+      }
+
+      setError(getErrorMessage(caughtError))
+    } finally {
+      setDeletingFileId(null)
+    }
   }
 
   return (
@@ -211,7 +249,12 @@ export function UserFilesPage() {
                 </p>
               ) : (
                 visibleFiles.map((file) => (
-                  <AccountFileItem file={file} key={file.id} />
+                  <AccountFileItem
+                    file={file}
+                    isDeleting={deletingFileId === file.id}
+                    key={file.id}
+                    onDelete={handleDeleteFile}
+                  />
                 ))
               )}
             </div>

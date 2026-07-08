@@ -68,6 +68,29 @@ export async function uploadSharedFile(
   return data as SharedFile
 }
 
+export async function deleteSharedFile(
+  id: number,
+  token: string,
+): Promise<void> {
+  const response = await fetch(apiUrl(`/files/${id}`), {
+    method: 'DELETE',
+    headers: {
+      Accept: 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  const data = await readJsonResponse(response)
+
+  if (response.status === 401) {
+    throw new AuthenticationError(getApiErrorMessage(data))
+  }
+
+  if (!response.ok) {
+    throw new Error(getApiErrorMessage(data))
+  }
+}
+
 export function getApiDownloadUrl(downloadToken: string): string {
   return apiUrl(`/files/${downloadToken}/download`)
 }
