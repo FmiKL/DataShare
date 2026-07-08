@@ -34,6 +34,18 @@ class SharedFileRepository extends ServiceEntityRepository
         return $this->findOneBy(['downloadToken' => $downloadToken]);
     }
 
+    public function findOneByIdAndOwner(int $id, User $userOwner): ?SharedFile
+    {
+        return $this->createQueryBuilder('s')
+            ->andWhere('s.id = :id')
+            ->andWhere('s.owner = :owner')
+            ->setParameter('id', $id)
+            ->setParameter('owner', $userOwner)
+            ->getQuery()
+            ->getOneOrNullResult()
+        ;
+    }
+
     //    /**
     //     * @return SharedFile[] Returns an array of SharedFile objects
     //     */

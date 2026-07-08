@@ -32,4 +32,13 @@ final readonly class LocalFileStorage
     {
         return is_file($this->path($storagePath));
     }
+
+    public function delete(string $storagePath): void
+    {
+        $filePath = $this->path($storagePath);
+
+        if (is_file($filePath)) {
+            unlink($filePath);
+        }
+    }
 }

@@ -73,8 +73,6 @@ export function UserFilesPage() {
   }
 
   async function handleDeleteFile(file: SharedFile) {
-    const fileId = Number(file.id)
-
     const shouldDelete = window.confirm(`Supprimer ${file.originalName} ?`)
 
     if (!shouldDelete) {
@@ -85,9 +83,9 @@ export function UserFilesPage() {
     setDeletingFileId(file.id)
 
     try {
-      await deleteSharedFile(fileId, authToken)
+      await deleteSharedFile(file.id, authToken)
       setFiles((currentFiles) =>
-        currentFiles.filter((currentFile) => currentFile.id !== fileId),
+        currentFiles.filter((currentFile) => currentFile.id !== file.id),
       )
     } catch (caughtError) {
       if (caughtError instanceof AuthenticationError) {

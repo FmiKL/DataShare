@@ -8,9 +8,9 @@ use App\Exception\File\FileTooLargeException;
 use App\Exception\File\FileUploadException;
 use App\Exception\File\ForbiddenFileTypeException;
 use App\Repository\SharedFileRepository;
+use App\Service\File\FileDeleteService;
 use App\Service\File\FileUploadService;
 use App\Service\File\LocalFileStorage;
-use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -71,29 +71,16 @@ final class FileController extends AbstractController
     public function delete(
         int $id,
         SharedFileRepository $sharedFileRepository,
-        LocalFileStorage $localFileStorage,
-        EntityManagerInterface $entityManager,
+        FileDeleteService $fileDeleteService,
         #[CurrentUser] User $user,
     ): JsonResponse|Response {
-        $sharedFile = $sharedFileRepository->find($id);
+        $sharedFile = $sharedFileRepository->findOneByIdAndOwner($id, $user);
 
         if (null === $sharedFile) {
             return $this->json(['message' => 'Fichier introuvable.'], JsonResponse::HTTP_NOT_FOUND);
         }
 
-        if ($sharedFile->getOwner()?->getId() !== $user->getId()) {
-            return $this->json(['message' => 'Fichier introuvable.'], JsonResponse::HTTP_NOT_FOUND);
-        }
-
-        $storagePath = $sharedFile->getStoragePath();
-        $filePath = null !== $storagePath ? $localFileStorage->path($storagePath) : null;
-
-        if (null !== $filePath && file_exists($filePath)) {
-            unlink($filePath);
-        }
-
-        $entityManager->remove($sharedFile);
-        $entityManager->flush();
+        $fileDeleteService->delete($sharedFile);
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }

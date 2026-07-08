@@ -104,6 +104,32 @@ final class FileControllerTest extends ApiWebTestCase
         );
     }
 
+    public function testDeletesUserFile(): void
+    {
+        $user = $this->createUser();
+        $sharedFile = $this->createSharedFile(
+            $user,
+            'document.txt',
+            new \DateTimeImmutable()
+        );
+        $sharedFileId = $sharedFile->getId();
+        $storagePath = $sharedFile->getStoragePath();
+
+        self::assertIsInt($sharedFileId);
+        self::assertIsString($storagePath);
+        self::assertFileExists($this->sharedFilePath($storagePath));
+
+        $this->client->request(
+            'DELETE',
+            $this->fileUri($sharedFileId),
+            server: $this->authorizationHeader($user)
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_NO_CONTENT);
+        self::assertNull($this->sharedFileRepository()->find($sharedFileId));
+        self::assertFileDoesNotExist($this->sharedFilePath($storagePath));
+    }
+
     public function testRequiresUploadAuthentication(): void
     {
         $this->client->request('POST', self::FILES_URI, files: ['file' => $this->createUploadedFile()]);
@@ -116,6 +142,48 @@ final class FileControllerTest extends ApiWebTestCase
         $this->client->request('GET', self::FILES_URI, server: ['HTTP_ACCEPT' => 'application/json']);
 
         self::assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+    }
+
+    public function testRequiresDeleteAuthentication(): void
+    {
+        $sharedFile = $this->createSharedFile(
+            $this->createUser(),
+            'document.txt',
+            new \DateTimeImmutable()
+        );
+        $sharedFileId = $sharedFile->getId();
+
+        self::assertIsInt($sharedFileId);
+
+        $this->client->request('DELETE', $this->fileUri($sharedFileId));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+    }
+
+    public function testRejectsDeleteOtherUserFile(): void
+    {
+        $user = $this->createUser();
+        $sharedFile = $this->createSharedFile(
+            $this->createUser('autre@user.com'),
+            'document.txt',
+            new \DateTimeImmutable()
+        );
+        $sharedFileId = $sharedFile->getId();
+        $storagePath = $sharedFile->getStoragePath();
+
+        self::assertIsInt($sharedFileId);
+        self::assertIsString($storagePath);
+
+        $this->client->request(
+            'DELETE',
+            $this->fileUri($sharedFileId),
+            server: $this->authorizationHeader($user)
+        );
+
+        self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+        self::assertSame(['message' => 'Fichier introuvable.'], $this->jsonResponse());
+        self::assertNotNull($this->sharedFileRepository()->find($sharedFileId));
+        self::assertFileExists($this->sharedFilePath($storagePath));
     }
 
     public function testRejectsDownloadUnknownToken(): void
@@ -226,6 +294,11 @@ final class FileControllerTest extends ApiWebTestCase
     private function downloadUri(string $downloadToken): string
     {
         return sprintf('%s/%s/download', self::FILES_URI, $downloadToken);
+    }
+
+    private function fileUri(int $id): string
+    {
+        return sprintf('%s/%d', self::FILES_URI, $id);
     }
 
     private function binaryFileContent(BinaryFileResponse $response): string

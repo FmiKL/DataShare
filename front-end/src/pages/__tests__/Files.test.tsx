@@ -1,4 +1,4 @@
-import { cleanup, screen } from '@testing-library/react'
+import { cleanup, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuthStore } from '../../stores/authStore'
@@ -20,6 +20,10 @@ const SHARED_FILE = {
 
 function futureDate(): string {
   return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+}
+
+function pastDate(): string {
+  return new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
 }
 
 describe('Files', () => {
@@ -89,5 +93,46 @@ describe('Files', () => {
         method: 'POST',
       }),
     )
+  })
+
+  it('deletes a user file', async () => {
+    const user = userEvent.setup()
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(mockJsonResponse([SHARED_FILE]))
+      .mockResolvedValueOnce(new Response(null, { status: 204 }))
+
+    vi.spyOn(window, 'confirm').mockReturnValue(true)
+
+    renderApp('/mes-fichiers')
+
+    expect(await screen.findByText('document.txt')).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Supprimer' }))
+
+    await waitFor(() => {
+      expect(screen.queryByText('document.txt')).not.toBeInTheDocument()
+    })
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${API_FILES_URL}/${SHARED_FILE.id}`,
+      expect.objectContaining({ method: 'DELETE' }),
+    )
+  })
+
+  it('displays expired file message', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockJsonResponse([{ ...SHARED_FILE, expiresAt: pastDate() }]),
+    )
+
+    renderApp('/mes-fichiers')
+
+    expect(
+      await screen.findByText(
+        "Ce fichier a expiré, il n'est plus stocké chez nous",
+      ),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Supprimer' })).toBeNull()
+    expect(screen.queryByRole('link', { name: /Accéder/ })).toBeNull()
   })
 })
