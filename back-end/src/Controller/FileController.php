@@ -11,6 +11,7 @@ use App\Repository\SharedFileRepository;
 use App\Service\File\FileDeleteService;
 use App\Service\File\FileUploadService;
 use App\Service\File\LocalFileStorage;
+use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
@@ -24,6 +25,11 @@ use Symfony\Component\Security\Http\Attribute\CurrentUser;
 #[Route('/api/files', name: 'api_files_')]
 final class FileController extends AbstractController
 {
+    public function __construct(
+        private readonly LoggerInterface $logger,
+    ) {
+    }
+
     #[Route(name: 'list', methods: ['GET'])]
     public function list(
         SharedFileRepository $sharedFileRepository,
@@ -59,6 +65,13 @@ final class FileController extends AbstractController
             return $this->json(['message' => $e->getMessage()], JsonResponse::HTTP_BAD_REQUEST);
         }
 
+        $this->logger->info('file.uploaded', [
+            'file_id' => $sharedFile->getId(),
+            'mime_type' => $sharedFile->getMimeType(),
+            'owner_id' => $user->getId(),
+            'size' => $sharedFile->getSize(),
+        ]);
+
         return $this->json($this->sharedFileResponse($sharedFile), JsonResponse::HTTP_CREATED);
     }
 
@@ -81,6 +94,11 @@ final class FileController extends AbstractController
         }
 
         $fileDeleteService->delete($sharedFile);
+
+        $this->logger->info('file.deleted', [
+            'file_id' => $id,
+            'owner_id' => $user->getId(),
+        ]);
 
         return new Response(status: Response::HTTP_NO_CONTENT);
     }
@@ -114,6 +132,12 @@ final class FileController extends AbstractController
             ResponseHeaderBag::DISPOSITION_ATTACHMENT);
 
         $response->headers->set('Content-Type', $sharedFile->getMimeType() ?? 'application/octet-stream');
+
+        $this->logger->info('file.downloaded', [
+            'file_id' => $sharedFile->getId(),
+            'mime_type' => $sharedFile->getMimeType(),
+            'size' => $sharedFile->getSize(),
+        ]);
 
         return $response;
     }
