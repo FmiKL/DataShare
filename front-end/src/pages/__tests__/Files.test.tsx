@@ -9,21 +9,26 @@ const API_FILES_URL = 'http://localhost:8000/api/files'
 const AUTH_TOKEN = 'jwt-token'
 const DOWNLOAD_TOKEN = 'downloadtoken'.repeat(5) + '1234'
 
+const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000
+const FILE_RETENTION_DAYS = 7
+
 const SHARED_FILE = {
   downloadToken: DOWNLOAD_TOKEN,
-  expiresAt: futureDate(),
+  expiresAt: futureExpirationDate(),
   id: 1,
   mimeType: 'text/plain',
   originalName: 'document.txt',
   size: 7,
 }
 
-function futureDate(): string {
-  return new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+function futureExpirationDate(): string {
+  return new Date(
+    Date.now() + FILE_RETENTION_DAYS * DAY_IN_MILLISECONDS,
+  ).toISOString()
 }
 
-function pastDate(): string {
-  return new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+function pastExpirationDate(): string {
+  return new Date(Date.now() - DAY_IN_MILLISECONDS).toISOString()
 }
 
 describe('Files', () => {
@@ -95,6 +100,19 @@ describe('Files', () => {
     )
   })
 
+  it('displays public download link', async () => {
+    renderApp(`/telechargement/${DOWNLOAD_TOKEN}`)
+
+    expect(
+      screen.getByRole('heading', { name: 'Télécharger un fichier' }),
+    ).toBeInTheDocument()
+
+    expect(screen.getByRole('link', { name: 'Télécharger' })).toHaveAttribute(
+      'href',
+      `http://localhost:8000/api/files/${DOWNLOAD_TOKEN}/download`,
+    )
+  })
+
   it('deletes a user file', async () => {
     const user = userEvent.setup()
     const fetchMock = vi
@@ -122,7 +140,7 @@ describe('Files', () => {
 
   it('displays expired file message', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      mockJsonResponse([{ ...SHARED_FILE, expiresAt: pastDate() }]),
+      mockJsonResponse([{ ...SHARED_FILE, expiresAt: pastExpirationDate() }]),
     )
 
     renderApp('/mes-fichiers')

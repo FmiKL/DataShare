@@ -1,15 +1,18 @@
 import type { SharedFile } from '../api/files'
 
+const KILOBYTE = 1024
+const MEGABYTE = KILOBYTE * 1024
+
 export function formatFileSize(size: number): string {
-  if (size < 1024) {
+  if (size < KILOBYTE) {
     return `${size} o`
   }
 
-  if (size < 1024 * 1024) {
-    return `${(size / 1024).toFixed(1)} Ko`
+  if (size < MEGABYTE) {
+    return `${(size / KILOBYTE).toFixed(1)} Ko`
   }
 
-  return `${(size / (1024 * 1024)).toFixed(1)} Mo`
+  return `${(size / MEGABYTE).toFixed(1)} Mo`
 }
 
 export function formatExpirationDate(date: string): string {
