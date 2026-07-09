@@ -5,7 +5,7 @@ Application web (MVP) pour transférer et partager des fichiers.
 ## Stack
 
 - Frontend : React, Vite, TypeScript
-- Backend : Symfony, API Platform
+- Backend : Symfony
 - Base de données : PostgreSQL
 - Tests : PHPUnit, Vitest, Playwright
 - Conteneurisation : Docker Compose
