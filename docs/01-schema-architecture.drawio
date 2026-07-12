@@ -1,0 +1,43 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="schema-architecture" name="Schema architecture">
+    <mxGraphModel dx="990" dy="563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" value="Schéma d&#39;architecture logicielle - DataShare MVP" vertex="1">
+          <mxGeometry height="40" width="720" x="40" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="user" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=14;align=center;verticalAlign=middle;spacing=8;" value="Utilisateur&#xa;Navigateur web" vertex="1">
+          <mxGeometry height="70" width="170" x="80" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="front" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=14;align=center;verticalAlign=middle;spacing=8;" value="Front-end&#xa;React" vertex="1">
+          <mxGeometry height="70" width="170" x="340" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="api" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=14;align=center;verticalAlign=middle;spacing=8;" value="Back-end&#xa;Symfony API" vertex="1">
+          <mxGeometry height="80" width="190" x="330" y="270" as="geometry" />
+        </mxCell>
+        <mxCell id="db" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=14;align=center;verticalAlign=middle;spacing=8;" value="Base de données&#xa;PostgreSQL" vertex="1">
+          <mxGeometry height="70" width="190" x="115" y="455" as="geometry" />
+        </mxCell>
+        <mxCell id="storage" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=14;align=center;verticalAlign=middle;spacing=8;" value="Stockage local&#xa;Fichiers uploadés" vertex="1">
+          <mxGeometry height="70" width="190" x="545" y="455" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=13;align=left;verticalAlign=top;spacing=10;" value="MVP uniquement&#xa;• Création de compte&#xa;• Connexion&#xa;• Upload avec compte&#xa;• Lien de téléchargement&#xa;• Historique&#xa;• Suppression" vertex="1">
+          <mxGeometry height="150" width="205" x="565" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="e1" edge="1" parent="1" source="user" style="endArrow=block;html=1;rounded=0;strokeWidth=1;" target="front" value="Interface web">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e2" edge="1" parent="1" source="front" style="endArrow=block;html=1;rounded=0;strokeWidth=1;" target="api" value="API REST / JSON&#xa;JWT si connecté">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e3" edge="1" parent="1" source="api" style="endArrow=block;html=1;rounded=0;strokeWidth=1;" target="db" value="Métadonnées">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e4" edge="1" parent="1" source="api" style="endArrow=block;html=1;rounded=0;strokeWidth=1;" target="storage" value="Fichiers">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

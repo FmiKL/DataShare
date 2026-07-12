@@ -15,6 +15,14 @@ Application web (MVP) pour transférer et partager des fichiers.
 - [`front-end`](./front-end) : application React
 - [`back-end`](./back-end) : API Symfony
 
+## Prérequis
+
+- PHP 8.2+
+- Composer
+- Symfony CLI
+- Node.js 20+
+- Docker
+
 ## Installation
 
 ### Frontend
@@ -64,16 +72,23 @@ php bin/console doctrine:migrations:migrate
 - API : `http://localhost:8000/api`
 - Adminer : `http://localhost:8081`
 
-## Vérifications
+## Utilisation
+
+- Créer un compte
+- Se connecter
+- Téléverser un fichier pour obtenir un lien de partage
+- Consulter ou supprimer ses fichiers depuis l'espace personnel
+- Ouvrir un lien de partage pour télécharger le fichier associé
+
+## Vérifications rapides
 
 ### Frontend
 
 ```bash
 cd front-end
 npm run lint
-npm run build
 npm run test
-npm run test:e2e
+npm run build
 ```
 
 ### Backend
@@ -84,3 +99,11 @@ composer cs:check
 composer analyse
 php bin/phpunit
 ```
+
+## Documentation
+
+- [`TESTING.md`](./TESTING.md)
+- [`SECURITY.md`](./SECURITY.md)
+- [`PERF.md`](./PERF.md)
+- [`MAINTENANCE.md`](./MAINTENANCE.md)
+- [`docs`](./docs) : documentation technique

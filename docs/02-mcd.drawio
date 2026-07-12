@@ -1,0 +1,31 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="mcd" name="MCD">
+    <mxGraphModel dx="990" dy="563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="m_title" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=20;fontStyle=1;" value="MCD - DataShare MVP" vertex="1">
+          <mxGeometry height="40" width="500" x="40" y="25" as="geometry" />
+        </mxCell>
+        <mxCell id="m_user" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=14;align=center;verticalAlign=middle;spacing=8;" value="UTILISATEUR&#xa;────────────&#xa;id&#xa;email&#xa;password&#xa;roles" vertex="1">
+          <mxGeometry height="180" width="230" x="80" y="120" as="geometry" />
+        </mxCell>
+        <mxCell id="m_file" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#000000;fontSize=14;align=center;verticalAlign=middle;spacing=8;" value="FICHIER&#xa;────────────&#xa;id&#xa;original_name&#xa;mime_type&#xa;size&#xa;storage_path&#xa;download_token&#xa;created_at&#xa;expires_at" vertex="1">
+          <mxGeometry height="245" width="250" x="511" y="96" as="geometry" />
+        </mxCell>
+        <mxCell id="m_edge" edge="1" parent="1" source="m_user" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=2;fontSize=12;" target="m_file" value="possède">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="card1" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;" value="0,N" vertex="1">
+          <mxGeometry height="30" width="50" x="328" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="card2" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=14;" value="1,1" vertex="1">
+          <mxGeometry height="30" width="50" x="471" y="180" as="geometry" />
+        </mxCell>
+        <mxCell id="note" parent="1" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontSize=13;" value="Lecture : un utilisateur peut posséder plusieurs fichiers.&#xa;Chaque fichier appartient à un seul utilisateur." vertex="1">
+          <mxGeometry height="60" width="650" x="80" y="360" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

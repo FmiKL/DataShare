@@ -1,0 +1,306 @@
+openapi: 3.1.0
+info:
+  title: DataShare API
+  version: 1.0.0
+  description: API du MVP DataShare pour l'authentification, le téléversement, la gestion et le téléchargement des fichiers.
+servers:
+  - url: http://localhost:8000
+    description: Environnement local
+tags:
+  - name: Authentification
+  - name: Fichiers
+paths:
+  /api/auth/register:
+    post:
+      tags:
+        - Authentification
+      summary: Créer un compte utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Compte créé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserResponse"
+        "409":
+          description: Adresse email déjà utilisée
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Données de formulaire invalides
+  /api/auth/login:
+    post:
+      tags:
+        - Authentification
+      summary: Connecter un utilisateur
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Connexion réussie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginResponse"
+        "401":
+          description: Identifiants invalides
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Données de formulaire invalides
+  /api/files:
+    get:
+      tags:
+        - Fichiers
+      summary: Lister les fichiers de l'utilisateur connecté
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Liste des fichiers
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SharedFile"
+        "401":
+          description: Utilisateur non connecté
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    post:
+      tags:
+        - Fichiers
+      summary: Téléverser un fichier
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: Fichier téléversé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedFile"
+        "400":
+          description: Fichier absent ou requête invalide
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Utilisateur non connecté
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          description: Fichier trop volumineux
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "415":
+          description: Type de fichier non autorisé
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/files/{id}:
+    delete:
+      tags:
+        - Fichiers
+      summary: Supprimer un fichier de l'utilisateur connecté
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+            examples:
+              - 12
+      responses:
+        "204":
+          description: Fichier supprimé
+        "401":
+          description: Utilisateur non connecté
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Fichier introuvable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /api/files/{downloadToken}/download:
+    get:
+      tags:
+        - Fichiers
+      summary: Télécharger un fichier depuis un lien de partage
+      parameters:
+        - name: downloadToken
+          in: path
+          required: true
+          description: Token de téléchargement fourni par l'API après téléversement.
+          schema:
+            type: string
+            examples:
+              - download-token-example
+      responses:
+        "200":
+          description: Fichier à télécharger
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        "404":
+          description: Fichier ou lien introuvable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      required:
+        - email
+        - password
+        - passwordConfirm
+      properties:
+        email:
+          type: string
+          format: email
+          examples:
+            - john.doe@example.com
+        password:
+          type: string
+          minLength: 8
+          examples:
+            - password123
+        passwordConfirm:
+          type: string
+          minLength: 8
+          examples:
+            - password123
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          examples:
+            - john.doe@example.com
+        password:
+          type: string
+          examples:
+            - password123
+    LoginResponse:
+      type: object
+      required:
+        - token
+      properties:
+        token:
+          type: string
+          examples:
+            - jwt-token-example
+    UserResponse:
+      type: object
+      required:
+        - id
+        - email
+      properties:
+        id:
+          type: integer
+          examples:
+            - 1
+        email:
+          type: string
+          format: email
+          examples:
+            - john.doe@example.com
+    SharedFile:
+      type: object
+      required:
+        - id
+        - originalName
+        - mimeType
+        - size
+        - downloadToken
+        - expiresAt
+      properties:
+        id:
+          type: integer
+          examples:
+            - 12
+        originalName:
+          type: string
+          examples:
+            - document.pdf
+        mimeType:
+          type: string
+          examples:
+            - application/pdf
+        size:
+          type: integer
+          examples:
+            - 250000
+        downloadToken:
+          type: string
+          description: Token opaque à utiliser dans le lien de téléchargement.
+          examples:
+            - download-token-example
+        expiresAt:
+          type: string
+          format: date-time
+          examples:
+            - "2027-01-01T10:00:00+00:00"
+    ErrorResponse:
+      type: object
+      required:
+        - message
+      properties:
+        message:
+          type: string
+          examples:
+            - Fichier introuvable.
