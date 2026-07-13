@@ -104,6 +104,25 @@ final class FileController extends AbstractController
     }
 
     #[Route(
+        '/{downloadToken}/metadata',
+        name: 'show',
+        requirements: ['downloadToken' => '[a-z0-9]{64}'],
+        methods: ['GET']
+    )]
+    public function show(
+        string $downloadToken,
+        SharedFileRepository $sharedFileRepository,
+    ): JsonResponse {
+        $sharedFile = $sharedFileRepository->findOneByDownloadToken($downloadToken);
+
+        if (null === $sharedFile) {
+            return $this->json(['message' => 'Fichier introuvable.'], JsonResponse::HTTP_NOT_FOUND);
+        }
+
+        return $this->json($this->sharedFileMetadataResponse($sharedFile));
+    }
+
+    #[Route(
         '/{downloadToken}/download',
         name: 'download',
         requirements: ['downloadToken' => '[a-z0-9]{64}'],
@@ -149,6 +168,7 @@ final class FileController extends AbstractController
      *     mimeType: string|null,
      *     size: int|null,
      *     downloadToken: string|null,
+     *     createdAt: string,
      *     expiresAt: string
      * }
      */
@@ -160,6 +180,27 @@ final class FileController extends AbstractController
             'mimeType' => $sharedFile->getMimeType(),
             'size' => $sharedFile->getSize(),
             'downloadToken' => $sharedFile->getDownloadToken(),
+            'createdAt' => $sharedFile->getCreatedAt()->format(\DateTimeInterface::ATOM),
+            'expiresAt' => $sharedFile->getExpiresAt()->format(\DateTimeInterface::ATOM),
+        ];
+    }
+
+    /**
+     * @return array{
+     *     originalName: string|null,
+     *     mimeType: string|null,
+     *     size: int|null,
+     *     createdAt: string,
+     *     expiresAt: string
+     * }
+     */
+    private function sharedFileMetadataResponse(SharedFile $sharedFile): array
+    {
+        return [
+            'originalName' => $sharedFile->getOriginalName(),
+            'mimeType' => $sharedFile->getMimeType(),
+            'size' => $sharedFile->getSize(),
+            'createdAt' => $sharedFile->getCreatedAt()->format(\DateTimeInterface::ATOM),
             'expiresAt' => $sharedFile->getExpiresAt()->format(\DateTimeInterface::ATOM),
         ];
     }

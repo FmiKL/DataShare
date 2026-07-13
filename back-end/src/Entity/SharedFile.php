@@ -33,7 +33,7 @@ class SharedFile
     private ?string $downloadToken = null;
 
     #[ORM\Column]
-    private ?\DateTimeImmutable $createdAt = null;
+    private \DateTimeImmutable $createdAt;
 
     #[ORM\Column]
     private \DateTimeImmutable $expiresAt;
@@ -121,7 +121,7 @@ class SharedFile
         return $this;
     }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
+    public function getCreatedAt(): \DateTimeImmutable
     {
         return $this->createdAt;
     }

@@ -45,6 +45,7 @@ final class FileControllerTest extends ApiWebTestCase
         self::assertSame('text/plain', $response['mimeType']);
         self::assertSame(strlen(self::FILE_CONTENT), $response['size']);
         self::assertIsString($response['downloadToken']);
+        self::assertArrayHasKey('createdAt', $response);
         self::assertArrayHasKey('expiresAt', $response);
 
         $sharedFile = $this->sharedFileRepository()->findOneBy(['originalName' => 'document.txt']);
@@ -76,6 +77,35 @@ final class FileControllerTest extends ApiWebTestCase
             ['dernier-document.txt', 'ancien-document.txt'],
             array_column($response, 'originalName')
         );
+        self::assertArrayHasKey('createdAt', $response[0]);
+    }
+
+    public function testShowsSharedFileMetadata(): void
+    {
+        $createdAt = new \DateTimeImmutable('-1 day');
+        $sharedFile = $this->createSharedFile(
+            $this->createUser(),
+            'document.txt',
+            $createdAt
+        );
+
+        $downloadToken = $sharedFile->getDownloadToken();
+
+        self::assertIsString($downloadToken);
+
+        $this->client->request('GET', $this->metadataUri($downloadToken));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_OK);
+
+        $response = $this->jsonResponse();
+
+        self::assertSame('document.txt', $response['originalName']);
+        self::assertSame('text/plain', $response['mimeType']);
+        self::assertSame(strlen(self::FILE_CONTENT), $response['size']);
+        self::assertSame($createdAt->format(\DateTimeInterface::ATOM), $response['createdAt']);
+        self::assertArrayHasKey('expiresAt', $response);
+        self::assertArrayNotHasKey('id', $response);
+        self::assertArrayNotHasKey('downloadToken', $response);
     }
 
     public function testDownloadsSharedFile(): void
@@ -194,6 +224,14 @@ final class FileControllerTest extends ApiWebTestCase
         self::assertSame(['message' => 'Fichier introuvable.'], $this->jsonResponse());
     }
 
+    public function testRejectsMetadataUnknownToken(): void
+    {
+        $this->client->request('GET', $this->metadataUri(str_repeat('a', 64)));
+
+        self::assertResponseStatusCodeSame(Response::HTTP_NOT_FOUND);
+        self::assertSame(['message' => 'Fichier introuvable.'], $this->jsonResponse());
+    }
+
     public function testRejectsDownloadExpiredFile(): void
     {
         $sharedFile = $this->createSharedFile(
@@ -294,6 +332,11 @@ final class FileControllerTest extends ApiWebTestCase
     private function downloadUri(string $downloadToken): string
     {
         return sprintf('%s/%s/download', self::FILES_URI, $downloadToken);
+    }
+
+    private function metadataUri(string $downloadToken): string
+    {
+        return sprintf('%s/%s/metadata', self::FILES_URI, $downloadToken);
     }
 
     private function fileUri(int $id): string
