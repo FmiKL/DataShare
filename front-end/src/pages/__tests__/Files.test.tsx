@@ -13,6 +13,7 @@ const DAY_IN_MILLISECONDS = 24 * 60 * 60 * 1000
 const FILE_RETENTION_DAYS = 7
 
 const SHARED_FILE = {
+  createdAt: pastExpirationDate(),
   downloadToken: DOWNLOAD_TOKEN,
   expiresAt: futureExpirationDate(),
   id: 1,
@@ -50,6 +51,7 @@ describe('Files', () => {
     renderApp('/mes-fichiers')
 
     expect(await screen.findByText('document.txt')).toBeInTheDocument()
+    expect(screen.getByText(/7 o - Envoyé le/)).toBeInTheDocument()
 
     expect(fetchMock).toHaveBeenCalledWith(
       API_FILES_URL,
@@ -101,16 +103,68 @@ describe('Files', () => {
   })
 
   it('displays public download link', async () => {
+    const metadata = {
+      createdAt: SHARED_FILE.createdAt,
+      expiresAt: SHARED_FILE.expiresAt,
+      mimeType: SHARED_FILE.mimeType,
+      originalName: SHARED_FILE.originalName,
+      size: SHARED_FILE.size,
+    }
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(mockJsonResponse(metadata))
+
     renderApp(`/telechargement/${DOWNLOAD_TOKEN}`)
 
     expect(
       screen.getByRole('heading', { name: 'Télécharger un fichier' }),
     ).toBeInTheDocument()
 
+    expect(await screen.findByText('document.txt')).toBeInTheDocument()
+    expect(screen.getByText('text/plain - 7 o')).toBeInTheDocument()
+    expect(screen.getByText(/Expire le/)).toBeInTheDocument()
+
     expect(screen.getByRole('link', { name: 'Télécharger' })).toHaveAttribute(
       'href',
       `http://localhost:8000/api/files/${DOWNLOAD_TOKEN}/download`,
     )
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${API_FILES_URL}/${DOWNLOAD_TOKEN}/metadata`,
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          Accept: 'application/json',
+        }),
+      }),
+    )
+  })
+
+  it('displays expired public download link message', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockJsonResponse({
+        createdAt: SHARED_FILE.createdAt,
+        expiresAt: pastExpirationDate(),
+        mimeType: SHARED_FILE.mimeType,
+        originalName: SHARED_FILE.originalName,
+        size: SHARED_FILE.size,
+      }),
+    )
+
+    renderApp(`/telechargement/${DOWNLOAD_TOKEN}`)
+
+    expect(await screen.findByText('document.txt')).toBeInTheDocument()
+    expect(screen.getByText('Ce lien a expiré.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Télécharger' })).toBeNull()
+  })
+
+  it('displays unknown public download link message', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      mockJsonResponse({ message: 'Fichier introuvable.' }, 404),
+    )
+
+    renderApp(`/telechargement/${DOWNLOAD_TOKEN}`)
+
+    expect(await screen.findByText('Fichier introuvable.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Télécharger' })).toBeNull()
   })
 
   it('deletes a user file', async () => {

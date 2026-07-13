@@ -5,7 +5,12 @@ import copyIcon from '../assets/icons/copy.svg'
 import fileIcon from '../assets/icons/file.svg'
 import moreVerticalIcon from '../assets/icons/more-vertical.svg'
 import trashIcon from '../assets/icons/trash.svg'
-import { formatExpirationDate, isFileExpired } from '../utils/sharedFile'
+import {
+  formatExpirationDate,
+  formatFileDate,
+  formatFileSize,
+  isFileExpired,
+} from '../utils/sharedFile'
 
 type AccountFileItemProps = {
   file: SharedFile
@@ -41,6 +46,10 @@ export function AccountFileItem({
       <img alt="" className="account-file__icon" src={fileIcon} />
       <div className="account-file__content">
         <h2 className="account-file__name">{file.originalName}</h2>
+        <p className="account-file__details">
+          {formatFileSize(file.size)} - Envoyé le{' '}
+          {formatFileDate(file.createdAt)}
+        </p>
         <p className="account-file__meta">
           {expired
             ? 'Expiré'

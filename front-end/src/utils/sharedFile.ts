@@ -15,11 +15,15 @@ export function formatFileSize(size: number): string {
   return `${(size / MEGABYTE).toFixed(1)} Mo`
 }
 
-export function formatExpirationDate(date: string): string {
+export function formatFileDate(date: string): string {
   return new Intl.DateTimeFormat('fr-FR', {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(new Date(date))
+}
+
+export function formatExpirationDate(date: string): string {
+  return formatFileDate(date)
 }
 
 export function isFileExpired(file: Pick<SharedFile, 'expiresAt'>): boolean {

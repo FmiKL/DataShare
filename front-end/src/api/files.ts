@@ -6,6 +6,7 @@ import {
 } from './client'
 
 export type SharedFile = {
+  createdAt: string
   downloadToken: string
   expiresAt: string
   id: number
@@ -13,6 +14,8 @@ export type SharedFile = {
   originalName: string
   size: number
 }
+
+export type SharedFileMetadata = Omit<SharedFile, 'downloadToken' | 'id'>
 
 export async function fetchSharedFiles(token: string): Promise<SharedFile[]> {
   const response = await fetch(apiUrl('/files'), {
@@ -89,6 +92,24 @@ export async function deleteSharedFile(
   if (!response.ok) {
     throw new Error(getApiErrorMessage(data))
   }
+}
+
+export async function fetchSharedFileMetadata(
+  downloadToken: string,
+): Promise<SharedFileMetadata> {
+  const response = await fetch(apiUrl(`/files/${downloadToken}/metadata`), {
+    headers: {
+      Accept: 'application/json',
+    },
+  })
+
+  const data = await readJsonResponse(response)
+
+  if (!response.ok) {
+    throw new Error(getApiErrorMessage(data))
+  }
+
+  return data as SharedFileMetadata
 }
 
 export function getApiDownloadUrl(downloadToken: string): string {

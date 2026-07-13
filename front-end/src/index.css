@@ -432,6 +432,21 @@ input:focus-visible {
   font-size: 12px;
 }
 
+.download-card__metadata {
+  display: grid;
+  gap: 4px;
+}
+
+.download-card__file-name {
+  overflow: hidden;
+  margin: 0;
+  color: var(--color-black);
+  font-size: 13px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .download-card__button {
   text-decoration: none;
 }
@@ -613,11 +628,16 @@ input:focus-visible {
   white-space: nowrap;
 }
 
+.account-file__details,
 .account-file__meta,
 .account-file__status,
 .account-file__expired {
   margin: 0;
   font-size: 11px;
+}
+
+.account-file__details {
+  color: #8f8f8f;
 }
 
 .account-file__actions {
