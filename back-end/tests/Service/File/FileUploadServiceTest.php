@@ -4,6 +4,7 @@ namespace App\Tests\Service\File;
 
 use App\Entity\SharedFile;
 use App\Entity\User;
+use App\Exception\File\FileTooLargeException;
 use App\Exception\File\ForbiddenFileTypeException;
 use App\Service\File\FileUploadService;
 use App\Service\File\LocalFileStorage;
@@ -13,6 +14,8 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final class FileUploadServiceTest extends TestCase
 {
+    private const MAX_FILE_SIZE = 100 * 1024 * 1024;
+
     private string $shareDirectory;
 
     protected function setUp(): void
@@ -77,11 +80,31 @@ final class FileUploadServiceTest extends TestCase
         $this->fileUploadService($entityManager)->upload($this->createUploadedFile('document.pdf.php'), new User());
     }
 
-    private function fileUploadService(EntityManagerInterface $entityManager): FileUploadService
+    public function testRejectsTooLargeFile(): void
     {
+        $entityManager = $this->createMock(EntityManagerInterface::class);
+
+        $entityManager
+            ->expects(self::never())
+            ->method('persist');
+
+        $entityManager
+            ->expects(self::never())
+            ->method('flush');
+
+        $this->expectException(FileTooLargeException::class);
+
+        $this->fileUploadService($entityManager, 3)->upload($this->createUploadedFile('document.txt'), new User());
+    }
+
+    private function fileUploadService(
+        EntityManagerInterface $entityManager,
+        int $maxFileSize = self::MAX_FILE_SIZE,
+    ): FileUploadService {
         return new FileUploadService(
             $entityManager,
-            new LocalFileStorage($this->shareDirectory, '')
+            new LocalFileStorage($this->shareDirectory, ''),
+            $maxFileSize,
         );
     }
 

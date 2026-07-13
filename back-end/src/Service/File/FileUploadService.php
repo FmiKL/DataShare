@@ -13,14 +13,13 @@ use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 final readonly class FileUploadService
 {
-    private const MEGABYTE = (1024 * 1024);
-    private const MAX_FILE_SIZE = (100 * self::MEGABYTE); // 100 Mo
     private const EXPIRATION_DAYS = 7;
     private const FORBIDDEN_EXTENSIONS = ['bat', 'cmd', 'com', 'exe', 'msi', 'php', 'php3', 'php4', 'php5', 'phtml', 'sh'];
 
     public function __construct(
         private EntityManagerInterface $entityManager,
         private LocalFileStorage $localFileStorage,
+        private int $maxFileSize,
     ) {
     }
 
@@ -36,8 +35,8 @@ final readonly class FileUploadService
             throw new FileUploadException('La taille du fichier est inconnue.');
         }
 
-        if ($fileSize > self::MAX_FILE_SIZE) {
-            throw new FileTooLargeException();
+        if ($fileSize > $this->maxFileSize) {
+            throw new FileTooLargeException($this->maxFileSize);
         }
 
         $extension = strtolower(pathinfo($uploadedFile->getClientOriginalName(), PATHINFO_EXTENSION));
