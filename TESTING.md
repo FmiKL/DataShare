@@ -43,13 +43,13 @@ php bin/phpunit --coverage-text
 | ----------------------------------------------------------- | -------------------------------- |
 | `npm run format:check`                                      | OK                               |
 | `npm run lint`                                              | OK                               |
-| `npm run test`                                              | OK, 14 tests                     |
+| `npm run test`                                              | OK, 16 tests                     |
 | `npm run test:coverage`                                     | OK, seuil global de 70 % atteint |
 | `npm run build`                                             | OK                               |
 | `npm run test:e2e`                                          | OK, 3 tests                      |
 | `vendor/bin/php-cs-fixer fix --dry-run --diff --sequential` | OK                               |
 | `vendor/bin/phpstan analyse --debug`                        | OK                               |
-| `php bin/phpunit`                                           | OK, 25 tests, 151 assertions     |
+| `php bin/phpunit`                                           | OK, 28 tests, 175 assertions     |
 | `php bin/phpunit --coverage-text`                           | OK, seuil global de 70 % atteint |
 
 ## Couverture
@@ -65,10 +65,10 @@ Résultat actuel :
 
 | Métrique   | Couverture |
 | ---------- | ---------- |
-| Statements | 81.35 %    |
-| Branches   | 70.45 %    |
-| Functions  | 83.33 %    |
-| Lines      | 80.44 %    |
+| Statements | 82.64 %    |
+| Branches   | 71.05 %    |
+| Functions  | 84.41 %    |
+| Lines      | 81.88 %    |
 
 Le seuil global de 70 % est configuré dans `front-end/vite.config.ts`.
 
@@ -83,8 +83,8 @@ Résultat actuel :
 
 | Métrique | Couverture |
 | -------- | ---------- |
-| Classes  | 66.67 %    |
-| Methods  | 85.51 %    |
-| Lines    | 88.46 %    |
+| Classes  | 72.22 %    |
+| Methods  | 87.32 %    |
+| Lines    | 90.13 %    |
 
 Le seuil demandé de 70 % est atteint sur les lignes couvertes côté frontend et côté backend.

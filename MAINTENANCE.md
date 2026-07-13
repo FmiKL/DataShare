@@ -90,10 +90,13 @@ En développement, la valeur attendue est la suivante :
 
 ```env
 APP_SHARE_DIR=var/share
+APP_MAX_UPLOAD_SIZE=104857600
 ```
 
 Les noms de fichiers d'origine ne sont pas utilisés comme noms de stockage.
 Chaque fichier est renommé avec un nom aléatoire côté serveur.
+
+`APP_MAX_UPLOAD_SIZE` est exprimé en octets. La valeur actuelle correspond à 100 Mo.
 
 ## Logs
 

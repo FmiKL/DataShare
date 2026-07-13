@@ -31,6 +31,7 @@ Authorization: Bearer <jwt-token>
 | GET     | `/api/files`                          | Oui  | Lister les fichiers de l'utilisateur connecté    |
 | POST    | `/api/files`                          | Oui  | Téléverser un fichier                            |
 | DELETE  | `/api/files/{id}`                     | Oui  | Supprimer un fichier de l'utilisateur connecté   |
+| GET     | `/api/files/{downloadToken}/metadata` | Non  | Lire les métadonnées d'un fichier partagé        |
 | GET     | `/api/files/{downloadToken}/download` | Non  | Télécharger un fichier depuis un lien de partage |
 
 ## Structures de données
@@ -44,6 +45,7 @@ Authorization: Bearer <jwt-token>
   "mimeType": "application/pdf",
   "size": 250000,
   "downloadToken": "download-token-example",
+  "createdAt": "2026-12-25T10:00:00+00:00",
   "expiresAt": "2027-01-01T10:00:00+00:00"
 }
 ```
@@ -102,6 +104,7 @@ Réponse `200 OK` :
     "mimeType": "application/pdf",
     "size": 250000,
     "downloadToken": "download-token-example",
+    "createdAt": "2026-12-25T10:00:00+00:00",
     "expiresAt": "2027-01-01T10:00:00+00:00"
   }
 ]
@@ -124,6 +127,21 @@ Réponse `201 Created` :
   "mimeType": "application/pdf",
   "size": 250000,
   "downloadToken": "download-token-example",
+  "createdAt": "2026-12-25T10:00:00+00:00",
+  "expiresAt": "2027-01-01T10:00:00+00:00"
+}
+```
+
+### GET `/api/files/{downloadToken}/metadata`
+
+Réponse `200 OK` :
+
+```json
+{
+  "originalName": "document.pdf",
+  "mimeType": "application/pdf",
+  "size": 250000,
+  "createdAt": "2026-12-25T10:00:00+00:00",
   "expiresAt": "2027-01-01T10:00:00+00:00"
 }
 ```
@@ -144,7 +162,13 @@ Le lien partagé côté utilisateur pointe vers la route frontend :
 /telechargement/{downloadToken}
 ```
 
-Cette page déclenche ensuite le téléchargement via l'API :
+Cette page lit d'abord les métadonnées du fichier via l'API :
+
+```txt
+/api/files/{downloadToken}/metadata
+```
+
+Elle déclenche ensuite le téléchargement via l'API :
 
 ```txt
 /api/files/{downloadToken}/download

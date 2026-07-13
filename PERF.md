@@ -16,8 +16,8 @@ Le résultat actuel est le suivant :
 | Ressource           | Taille    | Gzip     |
 | ------------------- | --------- | -------- |
 | `dist/index.html`   | 0.46 kB   | 0.29 kB  |
-| `dist/assets/*.css` | 14.38 kB  | 3.07 kB  |
-| `dist/assets/*.js`  | 255.24 kB | 80.46 kB |
+| `dist/assets/*.css` | 14.64 kB  | 3.11 kB  |
+| `dist/assets/*.js`  | 256.42 kB | 80.72 kB |
 
 Le budget retenu pour le MVP est le suivant :
 

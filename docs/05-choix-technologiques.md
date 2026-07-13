@@ -27,4 +27,5 @@
 ## Limites assumées
 
 - Le stockage local devra évoluer vers un stockage objet si le volume de fichiers augmente.
+- La limite de taille des fichiers est configurable, mais reste fixée à 100 Mo pour le MVP.
 - Les fichiers expirés ne sont pas encore supprimés automatiquement par une tâche planifiée.

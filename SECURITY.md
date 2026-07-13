@@ -16,6 +16,7 @@ Le scan porte ici sur les dépendances applicatives utilisées par le frontend e
 | Accès non authentifié aux fichiers utilisateur | Les routes de gestion des fichiers nécessitent un JWT                  |
 | Accès au fichier d'un autre utilisateur        | Les requêtes de gestion filtrent les fichiers par utilisateur connecté |
 | Exécution de fichiers dangereux                | Les extensions serveur sensibles sont refusées à l'upload              |
+| Envoi de fichiers trop volumineux              | La taille d'upload est limitée à 100 Mo via la configuration           |
 | Exposition du nom de stockage interne          | Le fichier est renommé avec un nom aléatoire côté serveur              |
 | Téléchargement après expiration                | Un fichier expiré n'est plus téléchargeable                            |
 | Mot de passe en clair                          | Les mots de passe sont hashés par Symfony Security                     |

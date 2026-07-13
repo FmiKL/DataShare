@@ -163,6 +163,33 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /api/files/{downloadToken}/metadata:
+    get:
+      tags:
+        - Fichiers
+      summary: Lire les métadonnées d'un fichier partagé
+      parameters:
+        - name: downloadToken
+          in: path
+          required: true
+          description: Token de téléchargement fourni par l'API après téléversement.
+          schema:
+            type: string
+            examples:
+              - download-token-example
+      responses:
+        "200":
+          description: Métadonnées du fichier
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SharedFileMetadata"
+        "404":
+          description: Fichier ou lien introuvable
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /api/files/{downloadToken}/download:
     get:
       tags:
@@ -267,6 +294,7 @@ components:
         - mimeType
         - size
         - downloadToken
+        - createdAt
         - expiresAt
       properties:
         id:
@@ -290,6 +318,42 @@ components:
           description: Token opaque à utiliser dans le lien de téléchargement.
           examples:
             - download-token-example
+        createdAt:
+          type: string
+          format: date-time
+          examples:
+            - "2026-12-25T10:00:00+00:00"
+        expiresAt:
+          type: string
+          format: date-time
+          examples:
+            - "2027-01-01T10:00:00+00:00"
+    SharedFileMetadata:
+      type: object
+      required:
+        - originalName
+        - mimeType
+        - size
+        - createdAt
+        - expiresAt
+      properties:
+        originalName:
+          type: string
+          examples:
+            - document.pdf
+        mimeType:
+          type: string
+          examples:
+            - application/pdf
+        size:
+          type: integer
+          examples:
+            - 250000
+        createdAt:
+          type: string
+          format: date-time
+          examples:
+            - "2026-12-25T10:00:00+00:00"
         expiresAt:
           type: string
           format: date-time
